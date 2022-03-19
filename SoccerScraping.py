@@ -3,7 +3,10 @@ __author__ = 'agr70'
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import warnings
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
+warnings.simplefilter('ignore',InsecureRequestWarning)
 
 class SoccerScraping:
 
@@ -29,25 +32,20 @@ class SoccerScraping:
         print("Obteniendo la lista de los equipos")
         for team in teams_list:
             team_link = team.find('a')
-            team_link_str = str(team_link)
-            
-            string_ind_ini = team_link_str.index('">') + 2
-            string_ind_end = team_link_str.index('a>') - 2
-            team_clean = team_link_str[string_ind_ini:string_ind_end]
-            team_link_str = str(team_link_str)
+            #team_link_str = str(team_link)
 
-            string_ind_ini = team_link_str.index('">') + 2
-            string_ind_end = team_link_str.index('a>') - 2
-            team_clean = team_link_str[string_ind_ini:string_ind_end]
+            #string_ind_ini = team_link_str.index('">') + 2
+            #string_ind_end = team_link_str.index('a>') - 2
+            #team_clean = team_link_str[string_ind_ini:string_ind_end]
 
-            teams_list_clean.append(team_clean)
+            #teams_list_clean.append(team_clean)
             
-            string_url_ini = team_link_str.index('href="') + 6
-            string_url_end = team_link_str.index('>') - 1
-            team_url = team_link_str[string_url_ini:string_url_end]
-            teams_urls.append(team_url)
+            #string_url_ini = team_link_str.index('href="') + 6
+            #string_url_end = team_link_str.index('>') - 1
+            #team_url = team_link_str[string_url_ini:string_url_end]
+            #teams_urls.append(team_url)
             
-            teams_dict = dict(zip(teams_list_clean, teams_urls))
+            #teams_dict = dict(zip(teams_list_clean, teams_urls))
             #print(teams_dict)
             #print(team_clean)
 
