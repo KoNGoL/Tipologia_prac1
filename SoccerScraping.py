@@ -25,9 +25,15 @@ class SoccerScraping:
         # obtenemos la lista de los equipos
         teams_list = teams_grid.find_all('tr')
         teams_list_clean = []
+        teams_urls = []
         print("Obteniendo la lista de los equipos")
         for team in teams_list:
             team_link = team.find('a')
+            team_link = str(team_link)
+            
+            string_ind_ini = team_link.index('">') + 2
+            string_ind_end = team_link.index('a>') - 2
+            team_clean = team_link[string_ind_ini:string_ind_end]
             team_link_str = str(team_link)
 
             string_ind_ini = team_link_str.index('">') + 2
@@ -35,6 +41,14 @@ class SoccerScraping:
             team_clean = team_link_str[string_ind_ini:string_ind_end]
 
             teams_list_clean.append(team_clean)
+            
+            string_url_ini = team_link.index('href="') + 6
+            string_url_end = team_link.index('>') - 1
+            team_url = team_link[string_url_ini:string_url_end]
+            teams_urls.append(team_url)
+            
+        teams_dict = dict(zip(teams_list_clean, teams_urls))
+        print(teams_dict)
             #print(team_clean)
 
             self.teams.append({'team': team_link.text, 'path': team_link.get('href')})
