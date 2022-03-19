@@ -24,9 +24,18 @@ class SoccerScraping:
         teams_grid = self.soup.find(id="stats_squads_standard_for").find('tbody')
         # obtenemos la lista de los equipos
         teams_list = teams_grid.find_all('tr')
+        teams_list_clean = []
         for team in teams_list:
             team_link = team.find('a')
-            print(team_link)
+            team_link = str(team_link)
+            
+            string_ind_ini = team_link.index('">') + 2
+            string_ind_end = team_link.index('a>') - 2
+            team_clean = team_link[string_ind_ini:string_ind_end]
+            
+            teams_list_clean.append(team_clean)
+            print(team_clean)
+            
 
 
 
