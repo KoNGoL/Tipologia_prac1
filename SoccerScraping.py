@@ -25,6 +25,7 @@ class SoccerScraping:
         # obtenemos la lista de los equipos
         teams_list = teams_grid.find_all('tr')
         teams_list_clean = []
+        teams_urls = []
         for team in teams_list:
             team_link = team.find('a')
             team_link = str(team_link)
@@ -32,9 +33,14 @@ class SoccerScraping:
             string_ind_ini = team_link.index('">') + 2
             string_ind_end = team_link.index('a>') - 2
             team_clean = team_link[string_ind_ini:string_ind_end]
-            
             teams_list_clean.append(team_clean)
-            print(team_clean)
+            
+            string_url_ini = team_link.index('href="') + 6
+            string_url_end = team_link.index('>') - 1
+            team_url = team_link[string_url_ini:string_url_end]
+            teams_urls.append(team_url)
+            
+            print(team_url)
             
 
 
