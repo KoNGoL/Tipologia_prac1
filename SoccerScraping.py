@@ -40,9 +40,8 @@ class SoccerScraping:
             team_url = team_link[string_url_ini:string_url_end]
             teams_urls.append(team_url)
             
-            print(team_url)
-            
-
+        teams_dict = dict(zip(teams_list_clean, teams_urls))
+        print(teams_dict)
 
 
 
