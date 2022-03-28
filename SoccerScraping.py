@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import warnings
+import time
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 warnings.simplefilter('ignore',InsecureRequestWarning)
@@ -20,37 +21,18 @@ class SoccerScraping:
         #inicializamos el html
         page = requests.get(url, verify=False)
         self.soup = BeautifulSoup(page.content, "html.parser")
-        self.keys = None
+        self.keys = set()
 
 
     def find_teams(self):
         # obtenemos la grid de los equipos
-        teams_grid = self.soup.find(id="stats_squads_standard_for").find('tbody')
+        teams_grid = self.soup.find_all(class_="styled__ItemContainer-fyva03-1")
         # obtenemos la lista de los equipos
-        teams_list = teams_grid.find_all('tr')
-        teams_list_clean = []
-        teams_urls = []
         print("Obteniendo la lista de los equipos")
-        for team in teams_list:
-            team_link = team.find('a')
-            #team_link_str = str(team_link)
-
-            #string_ind_ini = team_link_str.index('">') + 2
-            #string_ind_end = team_link_str.index('a>') - 2
-            #team_clean = team_link_str[string_ind_ini:string_ind_end]
-
-            #teams_list_clean.append(team_clean)
-            
-            #string_url_ini = team_link_str.index('href="') + 6
-            #string_url_end = team_link_str.index('>') - 1
-            #team_url = team_link_str[string_url_ini:string_url_end]
-            #teams_urls.append(team_url)
-            
-            #teams_dict = dict(zip(teams_list_clean, teams_urls))
-            #print(teams_dict)
-            #print(team_clean)
-
-            self.teams.append({'team_name': team_link.text, 'path': team_link.get('href')})
+        for team in teams_grid:
+            team_link = team.find('a').get('href')
+            team_name = team.find('h2').text
+            self.teams.append({'team_name': team_name, 'path': team_link})
 
         print("Total equipos encontrados: {}".format(len(self.teams)))
 
@@ -62,52 +44,45 @@ class SoccerScraping:
     def find_team_players(self, team):
         print("Buscando jugadores del equipo {}".format(team['team_name']))
         players = []
-        team_request = requests.get(self.base_url + team['path'], verify=False)
+        team_request = requests.get(self.base_url + team['path'] + '/plantilla', verify=False)
         team_html = BeautifulSoup(team_request.content, "html.parser")
-        team_table = team_html.find(class_="table_container").find('tbody')
-        team_players = team_table.find_all('tr')
+        team_players = team_html.find(class_='styled__SquadListContainer-sx1q1t-0').find_all(class_="styled__CellStyled-vl6wna-0")
+        time.sleep(30)
+        players_found = set()
         # recorremos todos los jugadores del equipo
-        for player_row in team_players:
-            player_name_cell = player_row.find('th').find('a')
-            players.append({'name': player_name_cell.text, 'url': player_name_cell.get('href'), 'games_link': player_row.find('td', {'data-stat': 'matches'}).find('a').get('href')})
+        for player_cell in team_players:
+            #comprobamos que no sea un entrenador o asistente
+            if 'entrenador' in player_cell.text.lower():
+                continue
+            player_link = player_cell.find('a').get('href')
+            player_name = player_cell.find('p').text
+            if player_name in players_found:
+                continue
+            players_found.add(player_name)
+            players.append({'name': player_name, 'url': player_link})
 
         print("Total jugadores encontrados: {}".format(len(players)))
         team['players'] = players
         # recorremos todos los jugadores del equipo para extraer sus estadisticas
         for player in players:
-            player['games'] = self.find_player_games_data(player)
+            player['stats'] = self.find_player_stats(player)
 
 
-    def find_player_games_data(self, player):
+    def find_player_stats(self, player):
         print("Buscando info del jugador {}".format(player['name']))
-        games_info = []
-        player_games_request = requests.get(self.base_url + player['games_link'], verify=False)
-        player_games_html = BeautifulSoup(player_games_request.content, "html.parser")
-        # obtenemos las filas de los partidos
-        player_games_rows = player_games_html.find(id='matchlogs_all').find('tbody').find_all('tr')
-        print("Total partidos encontrados para el jugador {}: {}".format(player['name'], len(player_games_rows)))
-        # recorremos los partidos para obtener las estadisticas
-        for game in player_games_rows:
-            game_info = {}
-            # añadimos el primer campo al ser un th
-            date_cell = game.find('th')
-            game_info[date_cell.get('data-stat')] = date_cell.text
+        player_stats = {}
+        player_request = requests.get(self.base_url + player['url'], verify=False)
+        player_html = BeautifulSoup(player_request.content, "html.parser")
+        time.sleep(30)
+        #obtenemos las estadisticas del jugador
+        player_stats_rows = player_html.find_all(class_='styled__StatsCol-sc-19ye3lp-4')
+        for stat in player_stats_rows:
+            stat_key = stat.find(class_='styled__StatsColLabel-sc-19ye3lp-7').find('p').text
+            stat_value = stat.find(class_='styled__StatsColValue-sc-19ye3lp-8').find('p').text
+            player_stats[stat_key] = stat_value
+            self.keys.add(stat_key)
 
-            # recorremos las diferentes celdas
-            game_cells = game.find_all('td')
-            for cell in game_cells :
-                #print(cell.get('data-stat'))
-                game_info[cell.get('data-stat')] = cell.text
-
-
-            # guardmaos las keys para luego exportar a CSv
-            if self.keys == None:
-                self.keys = game_info.keys()
-
-            # añadimos la info dle partido
-            games_info.append(game_info)
-
-        return games_info
+        return player_stats
 
 
     def export_csv(self):
@@ -121,14 +96,15 @@ class SoccerScraping:
         # guardamos los datos extraidos en el csv
         for team in self.teams:
             for player in team['players']:
-                for game in player['games']:
-                    csv += "'" + team['team_name'] + "';'" + player['name'] + "';"
-                    for key in self.keys:
-                        if key in game:
-                            csv +="'" + game[key] + "';"
-                        else:
-                            csv +="'';"
-                    csv += "\n"
+                csv += "'" + team['team_name'] + "';'" + player['name'] + "';"
+                for key in self.keys:
+                    if 'stats' not in player :
+                        csv +="'';"
+                    elif key in player['stats']:
+                        csv +="'" + player['stats'][key] + "';"
+                    else:
+                        csv +="'';"
+                csv += "\n"
 
         # guardamos el fichero
         f = open("/home/fundamentia/PycharmProjects/Tipologia_prac1/players_info.csv", "w")
@@ -136,8 +112,8 @@ class SoccerScraping:
         f.close()
 
 
-URL = "https://fbref.com/es/comps/12/Estadisticas-de-La-Liga/"
-base_url = 'https://fbref.com/'
+URL = "https://www.laliga.com/laliga-santander/clubes"
+base_url = 'https://www.laliga.com/'
 soccer_scraping = SoccerScraping(URL, base_url)
 soccer_scraping.find_teams()
 soccer_scraping.scrap_data()
