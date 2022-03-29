@@ -11,4 +11,5 @@ Este script realiza un scrapping de la pagina web de [LaLiga](https://www.laliga
 ## Ficheros
 * SoccerScraping.py. Script para realizar el scraping en la web de [LaLiga](https://www.laliga.com/)
 * players_info.csv. Fichero resultado con la información extraida
+* SoccesScrappingSportRef.py Script para realizar el scraping en la web de [Sports Reference](https://fbref.com/es/comps/12/Estadisticas-de-La-Liga)
 * A falta de confirmación de los permisos para poder utilizar los datos se ha eliminado el tenido de la 2º web de Sports Reference.
