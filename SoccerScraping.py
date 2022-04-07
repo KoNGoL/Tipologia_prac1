@@ -19,12 +19,16 @@ class SoccerScraping:
         self.base_url = base_url
 
         #inicializamos el html
-        page = requests.get(url, verify=False)
-        self.soup = BeautifulSoup(page.content, "html.parser")
+        self.soup = self.invokeUrl(url)
         self.keys = set()
 
 
     def find_teams(self):
+        """
+        Encuentra todos los equipos en la web
+
+        Parameters: None
+        """
         # obtenemos la grid de los equipos
         teams_grid = self.soup.find_all(class_="styled__ItemContainer-fyva03-1")
         # obtenemos la lista de los equipos
@@ -38,16 +42,26 @@ class SoccerScraping:
 
 
     def scrap_data(self):
+        """
+        Inicia el Scrap de cada equipo encontrado
+
+        Parameters: None
+        """
         for team in self.teams:
             self.find_team_players(team)
 
     def find_team_players(self, team):
+        """
+        Encuentra todos los jugadores de un equipo y extrae sus datos
+
+        Parameters:
+        team: equipo a buscar
+
+        """
         print("Buscando jugadores del equipo {}".format(team['team_name']))
         players = []
-        team_request = requests.get(self.base_url + team['path'] + '/plantilla', verify=False)
-        team_html = BeautifulSoup(team_request.content, "html.parser")
+        team_html = self.invokeUrl(self.base_url + team['path'] + '/plantilla')
         team_players = team_html.find(class_='styled__SquadListContainer-sx1q1t-0').find_all(class_="styled__CellStyled-vl6wna-0")
-        time.sleep(30)
         players_found = set()
         # recorremos todos los jugadores del equipo
         for player_cell in team_players:
@@ -69,10 +83,18 @@ class SoccerScraping:
 
 
     def find_player_stats(self, player):
+        """
+        Extrae los datos de un jugador
+
+        Parameters:
+        player: juggador a extraer sus datos
+
+        Retuns:
+        Datos del jugador
+        """
         print("Buscando info del jugador {}".format(player['name']))
         player_stats = {}
-        player_request = requests.get(self.base_url + player['url'], verify=False)
-        player_html = BeautifulSoup(player_request.content, "html.parser")
+        player_html = self.invokeUrl(self.base_url + player['url'])
         time.sleep(30)
         #obtenemos las estadisticas del jugador
         player_stats_rows = player_html.find_all(class_='styled__StatsCol-sc-19ye3lp-4')
@@ -86,6 +108,12 @@ class SoccerScraping:
 
 
     def export_csv(self):
+        """
+        Exporta los datos a un CSV
+
+        Parameters: None
+
+        """
         print("Exportando información.")
         # generamos la cabecera del csv
         csv = "'equipo';'jugador';"
@@ -110,6 +138,35 @@ class SoccerScraping:
         f = open("/home/fundamentia/PycharmProjects/Tipologia_prac1/players_info.csv", "w")
         f.write(csv)
         f.close()
+
+
+    def invokeUrl(self, url):
+        """
+        Invoca una URl y general su html
+
+        Parameters:
+        url (string): url a la que invocar
+
+        Return:
+        (object) Html de la URL descargada
+        """
+        team_request = requests.get(url, verify=False)
+        if team_request.status_code == 202:
+            html = BeautifulSoup(team_request.content, "html.parser")
+            time.sleep(30)
+            return html
+        else:
+            # si da error, se esperan 30 seg y se reintata la llamada
+            time.sleep(30)
+            team_request = requests.get(url, verify=False)
+            if team_request.status_code == 202:
+                html = BeautifulSoup(team_request.content, "html.parser")
+                time.sleep(30)
+                return html
+            else:
+                print("ERROR AL INVOCAR LA URL: {}".format(url))
+        return None
+
 
 
 URL = "https://www.laliga.com/laliga-santander/clubes"

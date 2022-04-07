@@ -24,12 +24,16 @@ class SoccerScrapingSportRef:
 
 
     def find_teams(self):
+        """
+        Encuentra todos los equipos en la web
+
+        Parameters: None
+
+        """
         # obtenemos la grid de los equipos
         teams_grid = self.soup.find(id="stats_squads_standard_for").find('tbody')
         # obtenemos la lista de los equipos
         teams_list = teams_grid.find_all('tr')
-        teams_list_clean = []
-        teams_urls = []
         print("Obteniendo la lista de los equipos")
         for team in teams_list:
             team_link = team.find('a')
@@ -40,10 +44,22 @@ class SoccerScrapingSportRef:
 
 
     def scrap_data(self):
+        """
+        Inicia el Scrap de cada equipo encontrado
+
+        Parameters: None
+        """
         for team in self.teams:
             self.find_team_players(team)
 
     def find_team_players(self, team):
+        """
+        Encuetra todos los jugadores de un equipo y busca sus estadisticas generales
+
+        Parameters:
+        team: Json del equipo a buscar
+
+        """
         print("Buscando jugadores del equipo {}".format(team['team_name']))
         players = []
         team_request = requests.get(self.base_url + team['path'], verify=False)
@@ -63,6 +79,16 @@ class SoccerScrapingSportRef:
 
 
     def find_player_games_data(self, player):
+        """
+        Busca todos los datos del jugador
+
+        Parameters:
+        player: jugador a extraer sus datos
+
+        Returns:
+        array: array con todos los datos de todos los partidos disputados por es jugagdor
+
+        """
         print("Buscando info del jugador {}".format(player['name']))
         games_info = []
         player_games_request = requests.get(self.base_url + player['games_link'], verify=False)
@@ -95,6 +121,12 @@ class SoccerScrapingSportRef:
 
 
     def export_csv(self):
+        """
+        Exporta los datos a un CSV
+
+        Parameters: None
+
+        """
         print("Exportando información.")
         # generamos la cabecera del csv
         csv = "'equipo';'jugador';"
@@ -115,7 +147,7 @@ class SoccerScrapingSportRef:
                     csv += "\n"
 
         # guardamos el fichero
-        f = open("/home/fundamentia/PycharmProjects/Tipologia_prac1/players_info.csv", "w")
+        f = open("./players_info.csv", "w")
         f.write(csv)
         f.close()
 
