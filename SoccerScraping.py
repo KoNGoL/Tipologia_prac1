@@ -136,7 +136,7 @@ class SoccerScraping:
                 csv += "\n"
 
         # guardamos el fichero
-        f = open("/home/fundamentia/PycharmProjects/Tipologia_prac1/players_info.csv", "w")
+        f = open(".//players_info.csv", "w")
         f.write(csv)
         f.close()
 
