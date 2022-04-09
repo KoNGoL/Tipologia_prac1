@@ -50,6 +50,7 @@ class SoccerScraping:
         for team in self.teams:
             self.find_team_players(team)
 
+
     def find_team_players(self, team):
         """
         Encuentra todos los jugadores de un equipo y extrae sus datos
