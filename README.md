@@ -13,6 +13,6 @@ Este script realiza un scrapping de la pagina web de [LaLiga](https://www.laliga
 * players_info.csv. Fichero resultado con la información extraida
 * SoccesScrappingSportRef.py Script para realizar el scraping en la web de [Sports Reference](https://fbref.com/es/comps/12/Estadisticas-de-La-Liga)
 * players_info_LaLiga.csv. Fichero resultado con la informacion extraida de la web de Sports Reference
-* Tipologia_prac2.ipynb. Notebook con las respuestas a la PRA 2.
-* Tipologia_prac2.html. Respuesta de la PRA 2 en formato HTML.
+* [Tipologia_prac2.ipynb](https://github.com/KoNGoL/Tipologia_prac1/blob/main/Tipologia_prac2.ipynb). Notebook con las respuestas a la PRA 2.
+* [Tipologia_prac2.html](https://github.com/KoNGoL/Tipologia_prac1/blob/main/Tipologia_prac2.html). Respuesta de la PRA 2 en formato HTML.
 * . Video explicativo de la PRA2.
